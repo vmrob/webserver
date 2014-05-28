@@ -1,7 +1,18 @@
-#include <iostream>
+#include <string>
+
+#include "RequestHandler.h"
+#include "DocumentStore.h"
 
 int main(int argc, char* argv[]) {
 
-	std::cout << "hello world" << std::endl;
+	std::string documentRoot = ".";
 
+	if (argc == 2) {
+		documentRoot = argv[1];
+	}
+
+	DocumentStore ds(documentRoot);
+	RequestHandler rh(&ds);
+
+	rh.start();
 }
