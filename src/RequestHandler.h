@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include "ClientConnection.h"
+
 class DocumentStore;
 
 class RequestHandler {
@@ -8,5 +11,6 @@ public:
 
 	void start();
 private:
+	std::vector<ClientConnection> _clients;
 	DocumentStore* _ds = nullptr;
 };
