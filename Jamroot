@@ -1,4 +1,4 @@
-lib webserver-lib : [ glob src/*.cpp : main.cpp ] :
+lib webserver-lib : [ glob src/*.cpp : src/main.cpp ] :
 	<link>static
 	<toolset>darwin:<cxxflags>"-std=c++11 -fcolor-diagnostics"
 	<toolset>gcc:<cxxflags>"-std=c++11"
