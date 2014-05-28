@@ -1,0 +1,3 @@
+[submodule "deps/tinytest"]
+	path = deps/tinytest
+	url = https://github.com/Acronism/tinytest.git

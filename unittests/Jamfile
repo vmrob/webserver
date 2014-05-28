@@ -1,0 +1,5 @@
+using testing ;
+
+exe unittests : [ glob *.cpp ] ../deps/tinytest//tinytest ..//webserver-lib ;
+
+unit-test webserver-unittests : unittests ;

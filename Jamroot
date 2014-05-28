@@ -1,0 +1,14 @@
+lib webserver-lib : [ glob src/*.cpp : main.cpp ] :
+	<link>static
+	<toolset>darwin:<cxxflags>"-std=c++11 -fcolor-diagnostics"
+	<toolset>gcc:<cxxflags>"-std=c++11"
+: :
+	<toolset>darwin:<cxxflags>"-std=c++11 -fcolor-diagnostics"
+	<toolset>gcc:<cxxflags>"-std=c++11"
+;
+
+exe webserver : src/main.cpp webserver-lib ;
+
+install . : webserver ;
+
+build-project unittests ;
