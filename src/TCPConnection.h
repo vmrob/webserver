@@ -17,12 +17,12 @@ public:
 	// nonblocking, will read a max of len bytes to buffer.
 	// len will contain amount written
 	void read(char* buf, size_t* len);
-	
+
 	void write(const char* buf, size_t len);
 	void close();
 
 private:
-	sockaddr_in _addr;
+	sockaddr _addr;
 	socklen_t _addrlen = sizeof(_addr);
 	int _sockd = 0;
 };

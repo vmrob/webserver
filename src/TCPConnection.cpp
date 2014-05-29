@@ -1,11 +1,24 @@
 #include "TCPConnection.h"
 
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 std::string TCPConnection::address() {
-	return "[address here]";
+	char str[std::max(INET6_ADDRSTRLEN, INET_ADDRSTRLEN)];
+
+	if (_addr.sa_family == AF_INET) {
+		// ipv4
+		auto addr = (sockaddr_in*)&_addr;
+		inet_ntop(AF_INET, &(addr->sin_addr), str, INET_ADDRSTRLEN);
+	} else if (_addr.sa_family == AF_INET6) {
+		// ipv6
+		auto addr = (sockaddr_in6*)&_addr;
+		inet_ntop(AF_INET6, &(addr->sin6_addr), str, INET6_ADDRSTRLEN);
+	}
+
+	return str;
 }
 
 void TCPConnection::accept(int sockd) {
