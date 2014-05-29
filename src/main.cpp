@@ -2,6 +2,9 @@
 
 #include "RequestHandler.h"
 #include "DocumentStore.h"
+#include "TCPServer.h"
+
+#define LISTEN_PORT 8080
 
 int main(int argc, char* argv[]) {
 
@@ -14,5 +17,7 @@ int main(int argc, char* argv[]) {
 	DocumentStore ds(documentRoot);
 	RequestHandler rh(&ds);
 
-	rh.start();
+	TCPServer server(LISTEN_PORT);
+
+	server.start();
 }

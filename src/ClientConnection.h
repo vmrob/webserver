@@ -1,15 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <thread>
 
-class TCPConnection;
+#include "TCPConnection.h"
 
 class ClientConnection {
 public:
-	ClientConnection(std::shared_ptr<TCPConnection> connection) : _connection(connection) {}
+	ClientConnection(std::unique_ptr<TCPConnection> connection) : _connection(std::move(connection)) {}
 
 	void handle();
 
 private:
-	std::shared_ptr<TCPConnection> _connection;
+	std::unique_ptr<TCPConnection> _connection;
+	std::thread _thread;
 };

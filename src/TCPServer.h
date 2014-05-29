@@ -7,13 +7,14 @@ class TCPConnection;
 class TCPServer {
 public:
 	TCPServer(int port) : _port(port) {}
-	
-	// must be called before listen
-	// throws on error
-	void init();
 
-	std::shared_ptr<TCPConnection> listen();
+	void start();
 
 private:
 	int _port = 0;
+	int _sockd = 0;
+
+
+	void _init();
+	std::unique_ptr<TCPConnection> _accept();
 };
