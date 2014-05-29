@@ -3,118 +3,89 @@
 #include <array>
 #include <iostream>
 #include <cstdlib>
-#include "TCPConnection.h"
 
-void ClientConnection::handle() try {
+#include "TCPConnection.h"
+#include "DocumentStore.h"
+
+std::string ClientConnection::_readCrlfLine() {
 	std::string line;
 	char buf[1024] = {};
 
 	bool lineComplete = false;
 	while (!lineComplete) {
-		size_t written = _connection->readUntil(buf, sizeof(buf) - 1, '\r');
+		size_t written = _connection->readUntil(buf, sizeof(buf), '\r');
 
-		char c = '\0';
-		_connection->readByte(&c);
-		if (c == '\n') {
-			lineComplete = true;
-		} else {
-			throw std::runtime_error("invalid http request: carraige return without newline");
+		if (written < sizeof(buf)) {
+			char c = '\0';
+			_connection->readByte(&c);
+			if (c == '\n') {
+				lineComplete = true;
+			} else {
+				throw std::runtime_error("invalid http request: carraige return without newline");
+			}
 		}
 		line.insert(line.end(), buf, buf + written);
 	}
 
-	line.push_back('\0');
+	return line;
+}
 
-	std::cout << line << std::endl;
+void ClientConnection::handle() try {
+	std::string request = _readCrlfLine();
 
+	// read until an empty line is found, end of request
+	while (_readCrlfLine() != "") {
+		// nop
+	}
 
-	// while (true) {
-	// 	_connection->readByte(&c);
-	// 	if (r) {
-	// 		if (c == '\n') {
-	// 			break;
-	// 		}
-	// 		// invalid header? \r without \n
-	// 		throw std::runtime_error("invalid http request: carraige return without newline");
-	// 	}
-	// 	if (c == '\n') {
-	// 		// invalid header? \n without \r preceeding it
-	// 		throw std::runtime_error("invalid http request: newline without preceeding carraige return");
-	// 	}
-	// 	if (c == '\r') {
-	// 		r = true;
-	// 		continue;
-	// 	}
-	// 	line.push_back(c);
-	// }
+	// stream is now ready for next request
 
-	
-		// size_t readSize = buf.size() - nextWrite;
+	size_t firstSpace = request.find(' ');
+	if (firstSpace == std::string::npos || firstSpace == request.size()) {
+		throw std::runtime_error(std::string("invalid http request header: ") + request);
+	}
+	size_t secondSpace = request.find(' ', firstSpace + 1);
+	if (firstSpace == std::string::npos || secondSpace == request.size()) {
+		throw std::runtime_error(std::string("invalid http request header: ") + request);
+	}
+	std::string method(request, 0, firstSpace);
+	std::string uri(request, firstSpace + 1, secondSpace - firstSpace - 1);
 
-		// _connection->read(buf.data() + nextWrite, &readSize);
+	if (method != "GET" && method != "HEAD") {
+		const char response[] =
+			"HTTP/1.1 501 Not Implemented\r\n"
+			"Connection: close\r\n"
+			"\r\n";
+		_connection->write(response, sizeof(response));
+		_connection->close();
+		return;
+	}
 
-		// std::cout << "read " << readSize << " bytes:" << std::endl;
-		// std::cout << std::string(buf.data() + nextWrite, readSize) << std::endl;
+	auto doc = GetDocument(uri);
 
-		// size_t pos = 0;
-		// while (pos < readSize) {
-		// 	if (buf[pos] == '\r') {
-		// 		if (pos < readSize - 1) {
-		// 			if (buf[pos + 1] == '\n') {
-		// 				// end of line, drop until double carraige return + newline
+	if (doc.empty()) {
+		const char response[] =
+			"HTTP/1.1 404 Not Found\r\n"
+			"Connection: close\r\n"
+			"\r\n";
+		_connection->write(response, sizeof(response));
+		_connection->close();
+		return;
+	}	
 
-		// 				nextWrite = 0;
-		// 				break;
-		// 			}
-		// 			// read error, \r without \n
-		// 			throw std::runtime_error("invalid http request: carraige return without newline")
-		// 		} else {
-		// 			// \r is the last character in the buffer
-		// 			buf[0] = '\r';
-		// 			nextWrite = 1;
-		// 			break;
-		// 		}
-		// 	}
-		// 	line.push_back(buf[pos]);
-		// }
+	std::string response =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Length: " + std::to_string(doc.size()) + "\r\n"
+		"Connection: close\r\n"
+		"\r\n";
 
-		// auto r = std::find(buf.begin(), buf.begin() + readSize, '\r');
-		// line.insert(line.end(), buf.begin(), r);
+	if (method == "GET") {
+		response += doc;	
+	}
 
-		// if (r != buf.begin() + readSize &&
-		// 	r != buf.begin() + readSize - 1
-		// ) {
-		// 	if (*(r + 1) == '\n') {
-		// 	}
-		// }
+	_connection->write(response.c_str(), response.size());
+	_connection->close();
 
-		// std::string method;
-		// std::string uri;
-		// for (size_t i = 0; i < readSize; ++i) {
-		// 	if 
-		// }
-		
-	// }
-
-
-
-	// char hello[] =
-	// 	"HTTP/1.1 200 OK\r\n"
-	// 	"Connection: close\r\n"
-	// 	"\r\n"
-	// 	"<html>\n"
-	// 	"<head>\n"
-	// 	"  <title>An Example Page</title>\n"
-	// 	"</head>\n"
-	// 	"<body>\n"
-	// 	"  Hello World, this is a very simple HTML document.\n"
-	// 	"</body>\n"
-	// 	"</html>\n";
-
-	// _connection->write(hello, sizeof(hello));
-	// _connection->close();
-
-	std::cout << "handled client" << std::endl;
 } catch (std::runtime_error& e) {
 	_connection->close();
 	std::cout << e.what() << std::endl;

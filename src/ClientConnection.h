@@ -14,4 +14,6 @@ public:
 private:
 	std::unique_ptr<TCPConnection> _connection;
 	std::thread _thread;
+
+	std::string _readCrlfLine();
 };

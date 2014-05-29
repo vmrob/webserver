@@ -1,6 +1,5 @@
 #include <string>
 
-#include "RequestHandler.h"
 #include "DocumentStore.h"
 #include "TCPServer.h"
 
@@ -14,8 +13,7 @@ int main(int argc, char* argv[]) {
 		documentRoot = argv[1];
 	}
 
-	DocumentStore ds(documentRoot);
-	RequestHandler rh(&ds);
+	SetDocumentRoot(documentRoot);
 
 	TCPServer server(LISTEN_PORT);
 

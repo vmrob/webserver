@@ -2,10 +2,6 @@
 
 #include <string>
 
-class DocumentStore {
-public:
-	DocumentStore(std::string documentRoot) : _documentRoot(std::move(documentRoot)) {}
+void SetDocumentRoot(std::string documentRoot);
 
-private:
-	std::string _documentRoot;
-};
+std::string GetDocument(std::string uri);
